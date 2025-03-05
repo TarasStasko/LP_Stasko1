@@ -1,14 +1,37 @@
-% map(+Pred, +InputList, -OutputList)
 map(_, [], []).
 
 map(Pred, [X|Xs], [Y|Ys]) :-
     call(Pred, X, Y),
     map(Pred, Xs, Ys).
 
-% maybe_fmap(+Pred, +MaybeValue, -Result)
-maybe_fmap(_, nothing, nothing).
+fmap(_Pred, X, X) :-
+    var(X), !.
 
-maybe_fmap(Pred, just(X), just(Y)) :-
+fmap(Pred, X, Y) :-
+    atomic(X), !,
     call(Pred, X, Y).
 
-add1(X, Y) :- Y is X + 1.
+fmap(Pred, [H|T], [H2|T2]) :- !,
+    fmap(Pred, H, H2),
+    fmap(Pred, T, T2).
+
+fmap(Pred, Term, Result) :-
+    compound(Term),
+    call(Pred, Term, Transformed),
+    ( Term == Transformed ->
+         Term =.. [F|Args],
+         map(fmap(Pred), Args, NewArgs),
+         Result =.. [F|NewArgs]
+    ;
+         Result = Transformed
+    ).
+
+add4(X, Y) :-  
+    number(X),
+    Y is X + 4.
+add4(X, X).
+
+move3(point(X, Y), point(X3, Y3)) :-
+    X3 is X + 3,
+    Y3 is Y + 3.
+move3(X, X).
