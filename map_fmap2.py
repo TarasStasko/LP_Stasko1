@@ -5,33 +5,25 @@ def my_map(func, lst):
     return result
 
 
-class Maybe:
-    def __init__(self, value, is_just=True):
-        self.value = value
-        self.is_just = is_just
+def fmap(pred, term):
 
-    def __repr__(self):
-        if self.is_just:
-            return f"Just({self.value})"
-        else:
-            return "Nothing"
+    try:
+        transformed = pred(term)
+    except Exception:
+        transformed = term
 
-def just(value):
-    return Maybe(value, True)
+    if transformed != term:
+        return transformed
 
-def nothing():
-    return Maybe(None, False)
+    if isinstance(term, list):
+        return [fmap(pred, item) for item in term]
+    if isinstance(term, tuple):
+        return tuple(fmap(pred, item) for item in term)
+    if isinstance(term, dict):
+        return {k: fmap(pred, v) for k, v in term.items()}
 
-def maybe_fmap(func, maybe_val):
-    if maybe_val.is_just:
-        return just(func(maybe_val.value))
-    else:
-        return nothing()
+    return term
 
-maybe_number = just(5)
-mapped_maybe_number = maybe_fmap(lambda x: x * 2, maybe_number)
-print("maybe_fmap result for just(5):", mapped_maybe_number)
-
-maybe_list = just([1, 2, 3])
-mapped_maybe_list = maybe_fmap(lambda lst: my_map(lambda x: x + 1, lst), maybe_list)
-print("maybe_fmap result for just([1,2,3]):", mapped_maybe_list)
+example = [1, 2, [3, 4], {"a": 5, "b": [6, 7]}, "hello"]
+result = fmap(lambda x: x + 3, example)
+print("fmap result:", result)
